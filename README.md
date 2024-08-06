@@ -6,8 +6,8 @@
 
 | 내용                       | 일정      | 발표자 |
 | -------------------------- | --------- | ------ |
-| #2 Introduction            | 08.06(화) |        |
-| #3 Welcome To Langchain    | 08.06(화) |        |
+| #2 Introduction            | 08.06(화) | 공통   |
+| #3 Welcome To Langchain    | 08.06(화) | 장준혁 |
 | #4 Model IO                | 08.07(수) |        |
 | #5 Memory                  | 08.07(수) |        |
 | #6 RAG                     | 08.08(목) |        |
