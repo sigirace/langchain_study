@@ -136,3 +136,4 @@ cython_debug/
 # etc
 etc/
 files/
+*/files/
