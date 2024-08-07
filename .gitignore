@@ -129,3 +129,13 @@ cython_debug/
 
 # VS Code
 .vscode/
+
+# Pem
+*.pem
+
+# etc
+etc/
+files/
+*/files/
+*/streamlit/
+streamlit/
