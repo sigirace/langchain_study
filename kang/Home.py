@@ -1,8 +1,10 @@
 import streamlit as st
-from langchain.prompts import PromptTemplate
+from datetime import datetime
 
-st.write("Hello, world!")
+today = datetime.today().strftime('%H:%M:%S')
 
-st.write([1, 2,3, 4,1001])
+st.title(today)
 
-st.write(PromptTemplate)
+st.selectbox('Select', ['A', 'B', 'C'])
+
+value = st.slider("temperature", 0, 100, 25)
