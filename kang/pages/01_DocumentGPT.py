@@ -1,3 +1,6 @@
+from typing import Any, Dict, List
+from uuid import UUID
+from langchain.schema.output import ChatGenerationChunk, GenerationChunk
 import streamlit as st
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
@@ -8,6 +11,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.storage.file_system import LocalFileStore
 from langchain.embeddings.cache import CacheBackedEmbeddings
 from langchain.schema.runnable import RunnablePassthrough, RunnableLambda
+from langchain.callbacks.base import BaseCallbackHandler
 
 
 st.set_page_config(
@@ -15,9 +19,28 @@ st.set_page_config(
     page_icon="🤖",
 )
 
+class ChatCallbackHandler(BaseCallbackHandler):
+
+    message = ""
+    
+    def on_llm_start(self, *args, **kwargs):
+        self.message_box = st.empty()
+
+    def on_llm_end(self, *args, **kwargs):
+        save_message(self.message, "AI")
+    
+    def on_llm_new_token(self, token, *args, **kwargs):
+        self.message += token
+        self.message_box.markdown(self.message)
+
+
 llm = ChatOpenAI(
     temperature=0.1,
-)
+    streaming=True,
+    callbacks=[
+        ChatCallbackHandler(),
+        ],
+    )
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
@@ -47,7 +70,10 @@ def send_message(message, role, save=True):
     with st.chat_message(role):
         st.markdown(message)
     if save:
-        st.session_state["messages"].append({"message": message, "role": role})
+        save_message(message, role)
+        
+def save_message(message, role):
+    st.session_state["messages"].append({"message": message, "role": role})
 
 def paint_history():
     for message in st.session_state["messages"]:
@@ -95,7 +121,9 @@ if file:
         chain = {"context": retriever |  RunnableLambda(format_docs), 
                  "question": RunnablePassthrough()
                 }| prompt | llm
-        response = chain.invoke(message)
-        send_message(response.content, "AI")
+        
+        with st.chat_message("AI"):
+            response = chain.invoke(message)
+
 else:
     st.session_state["messages"] = []
