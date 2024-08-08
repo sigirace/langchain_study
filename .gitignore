@@ -137,5 +137,5 @@ cython_debug/
 etc/
 files/
 */files/
-*/streamlit/
-streamlit/
+*/.streamlit/
+.streamlit/
