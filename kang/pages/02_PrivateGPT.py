@@ -1,11 +1,8 @@
-from typing import Any, Dict, List
-from uuid import UUID
-from langchain.schema.output import ChatGenerationChunk, GenerationChunk
 import streamlit as st
-from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.vectorstores.faiss import FAISS
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.embeddings.ollama import OllamaEmbeddings
+from langchain.chat_models.ollama import ChatOllama
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.storage.file_system import LocalFileStore
@@ -34,7 +31,8 @@ class ChatCallbackHandler(BaseCallbackHandler):
         self.message_box.markdown(self.message)
 
 
-llm = ChatOpenAI(
+llm = ChatOllama(
+    model="llama3.1:latest",
     temperature=0.1,
     streaming=True,
     callbacks=[
@@ -60,7 +58,9 @@ def embed_file(file):
     )
     loader = UnstructuredFileLoader(file_path) 
     docs = loader.load_and_split(text_splitter=spliter)
-    embeddings = OpenAIEmbeddings()
+    embeddings = OllamaEmbeddings(
+        model="llama3.1:latest",
+    )
     cached_embeddings = CacheBackedEmbeddings.from_bytes_store(embeddings, cache_dir)
     vectorstore = FAISS.from_documents(documents=docs, embedding=cached_embeddings)
     retriever = vectorstore.as_retriever()
@@ -82,19 +82,14 @@ def paint_history():
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """
-            Answer the question using ONLY the following context. If you don't know the answer just say you don't know. DON'T make anything up.
-            
-            Context: {context}
-            """,
-        ),
-        ("human", "{question}"),
-    ]
+prompt = ChatPromptTemplate.from_template(
+    """Answer the question using ONLY the following context and not your training data. If you don't know the answer just say you don't know. DON'T make anything up.
+    
+    Context: {context}
+    Question:{question}
+    """
 )
+
 
 
 st.title("DocumentGPT")
