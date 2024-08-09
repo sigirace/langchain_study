@@ -32,7 +32,7 @@ st.markdown("""
 
 이번 챌린지는 사용자 질문에 따라 개인 정보를 위반하고 있는지 파악하는 챗봇을 구축하는 것입니다.
 
-💥 **Mission** : ConversationSummaryMemory를 써보기
+💥 **Mission** : Chain을 2개 사용해보기!!
 """)
 
 with st.sidebar:
