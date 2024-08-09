@@ -2,6 +2,8 @@ import streamlit as st
 from langchain.retrievers.wikipedia import WikipediaRetriever
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
+from langchain.chat_models import ChatOpenAI
+from langchain.callbacks.base import BaseCallbackHandler
 
 st.set_page_config(
     page_title="Quize GPT Home",
@@ -9,6 +11,33 @@ st.set_page_config(
 )
 
 st.title("Quiz GPT")
+
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
+
+class ChatCallbackHandler(BaseCallbackHandler):
+
+    message = ""
+    
+    def on_llm_start(self, *args, **kwargs):
+        self.message_box = st.empty()
+
+    def on_llm_end(self, *args, **kwargs):
+        save_message(self.message, "AI")
+    
+    def on_llm_new_token(self, token, *args, **kwargs):
+        self.message += token
+        self.message_box.markdown(self.message)
+
+
+llm = ChatOpenAI(
+    temperature=0.1,
+    model="gpt-3.5-turbo-0125",
+    streaming=True,
+    callbacks=[
+        ChatCallbackHandler(),
+        ],
+    )
 
 @st.cache_data(show_spinner="Loading file...")
 def split_file(file):
@@ -25,6 +54,15 @@ def split_file(file):
     loader = UnstructuredFileLoader(file_path) 
     docs = loader.load_and_split(text_splitter=spliter)
     return docs
+
+def send_message(message, role, save=True):
+    with st.chat_message(role):
+        st.markdown(message)
+    if save:
+        save_message(message, role)
+        
+def save_message(message, role):
+    st.session_state["messages"].append({"message": message, "role": role})
 
 
 with st.sidebar:
