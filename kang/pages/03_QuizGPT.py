@@ -88,7 +88,7 @@ def format_docs(docs):
 
 ## --------------------------------Prompt--------------------------------
 
-prompt = ChatPromptTemplate.from_messages(
+question_prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
@@ -123,12 +123,136 @@ prompt = ChatPromptTemplate.from_messages(
         ]
     )
 
+formatting_prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """
+    You are a powerful formatting algorithm.
+     
+    You format exam questions into JSON format.
+    Answers with (o) are the correct ones.
+     
+    Example Input:
 
+    Question: What is the color of the ocean?
+    Answers: Red|Yellow|Green|Blue(o)
+         
+    Question: What is the capital or Georgia?
+    Answers: Baku|Tbilisi(o)|Manila|Beirut
+         
+    Question: When was Avatar released?
+    Answers: 2007|2001|2009(o)|1998
+         
+    Question: Who was Julius Caesar?
+    Answers: A Roman Emperor(o)|Painter|Actor|Model
+    
+     
+    Example Output:
+     
+    ```json
+    {{ "questions": [
+            {{
+                "question": "What is the color of the ocean?",
+                "answers": [
+                        {{
+                            "answer": "Red",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "Yellow",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "Green",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "Blue",
+                            "correct": true
+                        }},
+                ]
+            }},
+                        {{
+                "question": "What is the capital or Georgia?",
+                "answers": [
+                        {{
+                            "answer": "Baku",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "Tbilisi",
+                            "correct": true
+                        }},
+                        {{
+                            "answer": "Manila",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "Beirut",
+                            "correct": false
+                        }},
+                ]
+            }},
+                        {{
+                "question": "When was Avatar released?",
+                "answers": [
+                        {{
+                            "answer": "2007",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "2001",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "2009",
+                            "correct": true
+                        }},
+                        {{
+                            "answer": "1998",
+                            "correct": false
+                        }},
+                ]
+            }},
+            {{
+                "question": "Who was Julius Caesar?",
+                "answers": [
+                        {{
+                            "answer": "A Roman Emperor",
+                            "correct": true
+                        }},
+                        {{
+                            "answer": "Painter",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "Actor",
+                            "correct": false
+                        }},
+                        {{
+                            "answer": "Model",
+                            "correct": false
+                        }},
+                ]
+            }}
+        ]
+     }}
+    ```
+    Your turn!
+
+    Questions: {context}
+
+""",
+        )
+    ]
+)
 
 ## --------------------------------chain--------------------------------
 
-chain = {"context": format_docs} | prompt | llm
+question_chain = {"context": format_docs} | question_prompt | llm
 
+formatting_chain = formatting_prompt | llm
 
 ## --------------------------------UI--------------------------------
 
@@ -167,4 +291,12 @@ else:
     start = st.button("Generate Quiz")
 
     if start:
-        chain.invoke(docs)
+        question_response = question_chain.invoke(docs)
+        st.write(question_response.content)
+        formatting_response = formatting_chain.invoke(
+                                {
+                                    "context": question_response.content,
+                                }
+                            )
+        st.write(formatting_response.content)
+        print(type(formatting_response.content))
