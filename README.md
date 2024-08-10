@@ -10,8 +10,8 @@
 | #3 Welcome To Langchain    | 08.06(화) | 장준혁 |
 | #4 Model IO                | 08.07(수) | 장준혁 |
 | #5 Memory                  | 08.07(수) | 이채현 |
-| #6 RAG                     | 08.08(목) |        |
-| #7 DocumentGPT             | 08.08(목) |        |
+| #6 RAG                     | 08.08(목) | 황명선 |
+| #7 DocumentGPT             | 08.08(목) | 장준혁 |
 | #8 PrivateGPT              | 08.09(금) |        |
 | #9 QuizGPT                 | 08.09(금) |        |
 | #10 SiteGPT                | 08.12(월) |        |
