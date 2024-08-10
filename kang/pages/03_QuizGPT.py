@@ -6,8 +6,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.prompts import ChatPromptTemplate
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-
-
+from langchain.schema.output_parser import BaseOutputParser
+import json
 
 ## --------------------------------Default--------------------------------
 
@@ -40,7 +40,16 @@ class ChatCallbackHandler(BaseCallbackHandler):
         self.message += token
         self.message_box.markdown(self.message)
 
+class JsonOutputParser(BaseOutputParser):
+    def parse(self, text: str):
+        text = text.replace("```", "") \
+                .replace("json", "") \
+                .replace(", ]", "]") \
+                .replace(", }", "}")
 
+        return json.loads(text)
+
+    
 ## --------------------------------LLM--------------------------------
 
 llm = ChatOpenAI(
@@ -248,11 +257,17 @@ formatting_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
+## --------------------------------parser--------------------------------
+
+output_parser = JsonOutputParser()
+
 ## --------------------------------chain--------------------------------
 
 question_chain = {"context": format_docs} | question_prompt | llm
 
 formatting_chain = formatting_prompt | llm
+
+final_chain = {"context": question_chain} | formatting_chain | output_parser
 
 ## --------------------------------UI--------------------------------
 
@@ -291,12 +306,5 @@ else:
     start = st.button("Generate Quiz")
 
     if start:
-        question_response = question_chain.invoke(docs)
-        st.write(question_response.content)
-        formatting_response = formatting_chain.invoke(
-                                {
-                                    "context": question_response.content,
-                                }
-                            )
-        st.write(formatting_response.content)
-        print(type(formatting_response.content))
+        response = final_chain.invoke(docs)
+        st.write(response)
