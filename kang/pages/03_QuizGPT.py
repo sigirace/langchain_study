@@ -4,6 +4,13 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
+from langchain.prompts import ChatPromptTemplate
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+
+
+
+## --------------------------------Default--------------------------------
+
 
 st.set_page_config(
     page_title="Quize GPT Home",
@@ -14,6 +21,10 @@ st.title("Quiz GPT")
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
+
+
+## --------------------------------Class--------------------------------
+
 
 class ChatCallbackHandler(BaseCallbackHandler):
 
@@ -30,14 +41,20 @@ class ChatCallbackHandler(BaseCallbackHandler):
         self.message_box.markdown(self.message)
 
 
+## --------------------------------LLM--------------------------------
+
 llm = ChatOpenAI(
     temperature=0.1,
     model="gpt-3.5-turbo-0125",
     streaming=True,
     callbacks=[
-        ChatCallbackHandler(),
+        StreamingStdOutCallbackHandler(),
         ],
     )
+
+
+## --------------------------------Function--------------------------------
+
 
 @st.cache_data(show_spinner="Loading file...")
 def split_file(file):
@@ -63,6 +80,57 @@ def send_message(message, role, save=True):
         
 def save_message(message, role):
     st.session_state["messages"].append({"message": message, "role": role})
+
+
+def format_docs(docs):
+    return "\n\n".join(doc.page_content for doc in docs)
+
+
+## --------------------------------Prompt--------------------------------
+
+prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                """
+    You are a helpful assistant that is role playing as a teacher.
+         
+    Based ONLY on the following context make 10 questions to test the user's knowledge about the text.
+    
+    Each question should have 4 answers, three of them must be incorrect and one should be correct.
+         
+    Use (o) to signal the correct answer.
+         
+    Question examples:
+         
+    Question: What is the color of the ocean?
+    Answers: Red|Yellow|Green|Blue(o)
+         
+    Question: What is the capital or Georgia?
+    Answers: Baku|Tbilisi(o)|Manila|Beirut
+         
+    Question: When was Avatar released?
+    Answers: 2007|2001|2009(o)|1998
+         
+    Question: Who was Julius Caesar?
+    Answers: A Roman Emperor(o)|Painter|Actor|Model
+         
+    Your turn!
+         
+    Context: {context}
+""",
+            )
+        ]
+    )
+
+
+
+## --------------------------------chain--------------------------------
+
+chain = {"context": format_docs} | prompt | llm
+
+
+## --------------------------------UI--------------------------------
 
 
 with st.sidebar:
@@ -95,4 +163,8 @@ if not docs:
     """
     )
 else:
-    st.write(docs)
+
+    start = st.button("Generate Quiz")
+
+    if start:
+        chain.invoke(docs)
