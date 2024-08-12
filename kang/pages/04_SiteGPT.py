@@ -4,7 +4,8 @@ import streamlit as st
 
 @st.cache_data(show_spinner="Loading website...")
 def load_website(url):
-    loader = SitemapLoader(url)
+    loader = SitemapLoader(url,
+                           filter_urls=[r"^(.*\/blog\/).*"])
     loader.requests_per_second = 5
     docs = loader.load()
     return docs
