@@ -17,6 +17,7 @@
 - answered with a comma separated list등을 system message에 추가해서 답변형태를 강제 할 수 있음
 - chain = template+llmModel+outputParser
 - LCEL(LangChain Expression Language)
+  - ‘Chain’이라는 용어는 LLM이 최종 답변을 출력하기까지 필요한 기능들을 파이프처럼 이은 일련의 과정
   - Langchain에서 제공하는 기능들을 조합한 Chain을 마치 블록처럼 쉽게 분해, 조립할 수 있도록 설계한 프레임워크
   - Langchain계의 scikit-learn
 
