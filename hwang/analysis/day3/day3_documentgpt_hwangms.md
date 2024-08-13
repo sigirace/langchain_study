@@ -7,9 +7,9 @@
 
 ## 7.1 Magic
 - write() : 괄호안에 무엇이 들어가든 UI상으로 표현해줌. (string, 배열, 딕셔너리, class정보 등)
-![alt text](image.png)
+![alt text](image_docugpt.png)
 - write()를 사용하지 않고도 출력 가능. (그래서 magic이라고도 함)
-![alt text](image-1.png)
+![alt text](image-1_docught.png)
 - streamlit은 다양한 API가 존재함. caption, code block, canvas, metrics, json, chart 등등
 
 ## 7.2 Data Flow 

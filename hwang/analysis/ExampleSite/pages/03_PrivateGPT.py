@@ -1,15 +1,12 @@
 from langchain.prompts import ChatPromptTemplate
-from langchain_unstructured import UnstructuredLoader
+from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import CacheBackedEmbeddings, OllamaEmbeddings
-from langchain_openai import OpenAIEmbeddings
 from langchain.schema.runnable import RunnableLambda, RunnablePassthrough
 from langchain.storage import LocalFileStore
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.vectorstores import FAISS
+from langchain.vectorstores.faiss import FAISS
 from langchain.chat_models import ChatOllama
-from langchain_openai import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
-
 import streamlit as st
 
 st.set_page_config(
@@ -33,7 +30,7 @@ class ChatCallbackHandler(BaseCallbackHandler):
 
 
 llm = ChatOllama(
-    model='llama3:latest'
+    model="mistral:latest",
     temperature=0.1,
     streaming=True,
     callbacks=[
@@ -42,7 +39,7 @@ llm = ChatOllama(
 )
 
 
-@st.cache_resource(show_spinner="Embedding file...")
+@st.cache_data(show_spinner="Embedding file...")
 def embed_file(file):
     file_content = file.read()
     file_path = f"./.cache/private_files/{file.name}"
@@ -54,11 +51,9 @@ def embed_file(file):
         chunk_size=600,
         chunk_overlap=100,
     )
-    loader = UnstructuredLoader(file_path)
+    loader = UnstructuredFileLoader(file_path)
     docs = loader.load_and_split(text_splitter=splitter)
-    embeddings = OllamaEmbeddings(
-        model="llama3:latest"
-    )
+    embeddings = OllamaEmbeddings(model="mistral:latest")
     cached_embeddings = CacheBackedEmbeddings.from_bytes_store(embeddings, cache_dir)
     vectorstore = FAISS.from_documents(docs, cached_embeddings)
     retriever = vectorstore.as_retriever()
@@ -90,16 +85,15 @@ def format_docs(docs):
 
 
 prompt = ChatPromptTemplate.from_template(
-    """ Answer the question using ONLY the following context and not your training data.
-    If you don't know the answer just say you don't know. DON'T make anything up.
-            
-    Context:{context}
+    """Answer the question using ONLY the following context and not your training data. If you don't know the answer just say you don't know. DON'T make anything up.
+    
+    Context: {context}
     Question:{question}
     """
 )
 
 
-st.title("DocumentGPT")
+st.title("PrivateGPT")
 
 st.markdown(
     """
