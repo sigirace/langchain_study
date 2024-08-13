@@ -5,6 +5,16 @@ from pydub import AudioSegment
 import glob
 import openai
 import os
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+from langchain.document_loaders import TextLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.schema import StrOutputParser
+
+llm = ChatOpenAI(
+    temperature=0.1,
+)
+
 
 has_transcript = os.path.exists("./.cache/medias/whisper_video.txt")
 
@@ -80,16 +90,82 @@ with st.sidebar:
 
 if video:
     chunks_folder = "./.cache/medias/chunks"
-    with st.status("Loading video..."):
+    with st.status("Loading video...") as status:
         video_content = video.read()
         video_path = f"./.cache/medias/{video.name}"
         audio_path = video_path.replace("mp4", "mp3")
         transcript_path = video_path.replace("mp4", "txt")
         with open(video_path, "wb") as f:
             f.write(video_content)
-    with st.status("Extracting audio..."):
+        status.update(label="Extracting audio...")
         extract_audio_from_video(video_path)
-    with st.status("Cutting audio segments..."):
+        status.update(label="Cutting audio segments...")
         cut_audio_in_chunks(audio_path, 10, chunks_folder)
-    with st.status("Transcribing audio..."):
+        status.update(label="Transcribing audio...")
         transcribe_chunks(chunks_folder, transcript_path)
+
+    transcript_tab, summary_tab, qa_tab = st.tabs(
+        [
+            "Transcript",
+            "Summary",
+            "Q&A",
+        ]
+    )
+
+    with transcript_tab:
+        with open(transcript_path, "r") as file:
+            st.write(file.read())
+
+    with summary_tab:
+        start = st.button("Generate summary")
+
+        if start:
+            loader = TextLoader(transcript_path)
+            splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                chunk_size=512,
+                chunk_overlap=64,
+            )
+
+            docs = loader.load_and_split(text_splitter=splitter)
+            first_summary_prompt = ChatPromptTemplate.from_template(
+                """
+                아래 문장에 대한 간결한 요약을 수행해줘:
+                "{text}"
+                요약:                
+            """
+            )
+
+            first_summary_chain = first_summary_prompt | llm | StrOutputParser()
+
+            summary = first_summary_chain.invoke(
+                {"text": docs[0].page_content},
+            )
+
+            refine_prompt = ChatPromptTemplate.from_template(
+                """
+                너는 최종 요약을 만들어야 한다.
+                우리는 특정 지점까지의 기존 요약을 제공했다: {existing_summary}
+                우리는 새로운 문맥을 제공한다:
+                ------------
+                {context}
+                ------------
+                주어진 새로운 문맥을 고려하여 원래 요약을 개선하라.
+                주어진 문맥이 유용하지 않다면, 원래 요약을 반환하라.
+                """
+            )
+
+            refine_chain = refine_prompt | llm | StrOutputParser()
+
+            with st.status("Summarizing...") as status:
+                for i, doc in enumerate(docs[1:]):
+                    status.update(label=f"Processing document {i+1}/{len(docs)-1} ")
+                    summary = refine_chain.invoke(
+                        {
+                            "existing_summary": summary,
+                            "context": doc.page_content,
+                        }
+                    )
+                    st.write(summary)
+            st.write(summary)
+
+        
