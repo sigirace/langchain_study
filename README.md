@@ -12,7 +12,7 @@
 | #5 Memory                  | 08.07(수) | 이채현 |
 | #6 RAG                     | 08.08(목) | 황명선 |
 | #7 DocumentGPT             | 08.08(목) | 장준혁 |
-| #8 PrivateGPT              | 08.13(화) |        |
+| #8 PrivateGPT              | 08.13(화) | 장준혁 |
 | #9 QuizGPT                 | 08.14(수) |        |
 | #10 SiteGPT                | 08.19(월) |        |
 | #11 MeetingGPT             | 08.20(화) |        |
