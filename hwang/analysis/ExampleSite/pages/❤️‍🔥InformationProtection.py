@@ -2,7 +2,7 @@ import streamlit as st
 
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.messages import AIMessageChunk
-from langchain_openai import ChatOpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.schema import BaseOutputParser, output_parser
@@ -17,7 +17,7 @@ class ChatCallbackHandler(BaseCallbackHandler):
 
     def on_llm_end(self, *args, **kwargs):
         save_message(self.message, "ai")
-        if "위반" in content
+        # if "위반" in content
 
     def on_llm_new_token(self, token, *args, **kwargs):
         self.message += token
