@@ -13,8 +13,8 @@
 | #6 RAG                     | 08.08(목) | 황명선 |
 | #7 DocumentGPT             | 08.08(목) | 장준혁 |
 | #8 PrivateGPT              | 08.13(화) | 장준혁 |
-| #9 QuizGPT                 | 08.14(수) |        |
-| #10 SiteGPT                | 08.19(월) |        |
+| #9 QuizGPT                 | 08.14(수) | 황명선 |
+| #10 SiteGPT                | 08.19(월) | 김대영 |
 | #11 MeetingGPT             | 08.20(화) |        |
 | #12 InvestorGPT            | 08.21(수) |        |
 | #13 ChefGPT                | 08.22(목) |        |
