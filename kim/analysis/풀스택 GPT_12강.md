@@ -81,3 +81,4 @@ react논문(arxiv.org/pdf/2210.03629.pdf) : agent를 어떻게 활용하고 agen
 >> Open AI 함수를 사용하기 위해선 다른 방법으로 Tool을 설정해야함 > Pydantic에 대해 알아보자 : python의 데이터 유효성 라이브러리중 하나(docs.pydantic.dev/latest)
 > 우리의 데이터가 어떤 형태여야 하는지 알려준다. : OPENAI를 사용할 때 quizGPT에서 다루었던 것보다 훨씬 더 편리한 방법
 
+git test
