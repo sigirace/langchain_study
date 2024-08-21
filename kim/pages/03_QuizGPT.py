@@ -1,114 +1,49 @@
 import streamlit as st
-from langchain.retrievers.wikipedia import WikipediaRetriever
+import json
+from langchain.retrievers import WikipediaRetriever
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
-from langchain.chat_models import ChatOpenAI
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.prompts import ChatPromptTemplate
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from langchain.schema.output_parser import BaseOutputParser
-import json
 
+from langchain.chat_models import ChatOpenAI
+
+from langchain.prompts import ChatPromptTemplate
+from langchain.callbacks import StreamingStdOutCallbackHandler
+
+
+import os
+import openai
+os.environ["OPENAI_API_KEY"] = "" #모두의 연구소에서 발급
+openai.api_key = os.getenv("OPENAI_API_KEY")
 ## --------------------------------Default--------------------------------
 
+from langchain.schema import BaseOutputParser
+
+
+class JsonOutputParser(BaseOutputParser):
+    def parse(self, text):
+        text = text.replace("```", "").replace("json", "")
+        return json.loads(text)
+
+output_parser = JsonOutputParser()
 
 st.set_page_config(
-    page_title="Quize GPT Home",
-    page_icon="‼️",
+    page_title="Quize GPT",
+    page_icon="🏁", # ⚽️ ctrl + command + space : 맥에서 문자 및 기호 리스트 보기
 )
 
 st.title("Quiz GPT")
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
-
-
-## --------------------------------Class--------------------------------
-
-
-class ChatCallbackHandler(BaseCallbackHandler):
-
-    message = ""
-    
-    def on_llm_start(self, *args, **kwargs):
-        self.message_box = st.empty()
-
-    def on_llm_end(self, *args, **kwargs):
-        save_message(self.message, "AI")
-    
-    def on_llm_new_token(self, token, *args, **kwargs):
-        self.message += token
-        self.message_box.markdown(self.message)
-
-class JsonOutputParser(BaseOutputParser):
-    def parse(self, text: str):
-        text = text.replace("```", "") \
-                .replace("json", "") \
-                .replace(", ]", "]") \
-                .replace(", }", "}")
-
-        return json.loads(text)
-
-    
-## --------------------------------LLM--------------------------------
-
 llm = ChatOpenAI(
     temperature=0.1,
-    model="gpt-3.5-turbo-0125",
-    streaming=True,
-    callbacks=[
-        StreamingStdOutCallbackHandler(),
-        ],
-    )
-
-
-## --------------------------------Function--------------------------------
-
-
-@st.cache_data(show_spinner="Loading file...")
-def split_file(file):
-    file_content = file.read()
-    file_path = f"./.cache/quiz_files/{file.name}"
-    with open(file_path, "wb") as f:
-        f.write(file_content)
-
-    spliter = CharacterTextSplitter.from_tiktoken_encoder(
-        separator="\n\n",
-        chunk_size=200,
-        chunk_overlap=50,
-    )
-    loader = UnstructuredFileLoader(file_path) 
-    docs = loader.load_and_split(text_splitter=spliter)
-    return docs
-
-@st.cache_data(show_spinner="Making quiz...")
-def run_quiz_chain(_docs, hash_value):
-    return final_chain.invoke(_docs)
-
-@st.cache_data(show_spinner="Searching Wikipedia...")
-def wiki_search(topic):
-    retriever = WikipediaRetriever(top_k_results=3)
-    docs = retriever.get_relevant_documents(topic)
-    return docs
-    
-
-def send_message(message, role, save=True):
-    with st.chat_message(role):
-        st.markdown(message)
-    if save:
-        save_message(message, role)
-        
-def save_message(message, role):
-    st.session_state["messages"].append({"message": message, "role": role})
-
+    model="gpt-3.5-turbo-1106",
+    streaming = True,
+    callbacks = [StreamingStdOutCallbackHandler()],
+)
 
 def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
+    return "\n\n".join(document.page_content for document in docs)
 
-
-## --------------------------------Prompt--------------------------------
-
-question_prompt = ChatPromptTemplate.from_messages(
+questions_prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
@@ -142,6 +77,9 @@ question_prompt = ChatPromptTemplate.from_messages(
             )
         ]
     )
+    
+questions_chain = {"context": format_docs} | questions_prompt | llm
+    
 
 formatting_prompt = ChatPromptTemplate.from_messages(
     [
@@ -154,7 +92,6 @@ formatting_prompt = ChatPromptTemplate.from_messages(
     Answers with (o) are the correct ones.
      
     Example Input:
-
     Question: What is the color of the ocean?
     Answers: Red|Yellow|Green|Blue(o)
          
@@ -260,47 +197,71 @@ formatting_prompt = ChatPromptTemplate.from_messages(
      }}
     ```
     Your turn!
-
     Questions: {context}
-
 """,
         )
     ]
 )
 
-## --------------------------------parser--------------------------------
-
-output_parser = JsonOutputParser()
-
-## --------------------------------chain--------------------------------
-
-question_chain = {"context": format_docs} | question_prompt | llm
-
 formatting_chain = formatting_prompt | llm
 
-final_chain = {"context": question_chain} | formatting_chain | output_parser
 
-## --------------------------------UI--------------------------------
+@st.cache_data(show_spinner="Loading file...")
+def split_file(file):
+    file_content = file.read()
+    file_path = f"./.cache/quiz_files/{file.name}"
+    with open(file_path, "wb") as f:
+        f.write(file_content)
+
+    splitter = CharacterTextSplitter.from_tiktoken_encoder(
+        separator="\n",
+        chunk_size=600,
+        chunk_overlap=100,
+    )
+    loader = UnstructuredFileLoader(file_path) 
+    docs = loader.load_and_split(text_splitter=splitter)
+    return docs
+
+
+@st.cache_data(show_spinner="Making quiz...")
+def run_quiz_chain(_docs, topic):
+    chain = {"context": questions_chain} | formatting_chain | output_parser
+    return chain.invoke(_docs)
+
+
+@st.cache_data(show_spinner="Searching Wikipedia...")
+def wiki_search(term):
+    retriever = WikipediaRetriever(top_k_results=5)
+    #with st.status("Searching Wikipedia..."):
+    docs = retriever.get_relevant_documents(term)
+    return docs
 
 
 with st.sidebar:
     docs = None
-    hash_value = None
-    choice = st.selectbox("Choose what you want to use", 
-                          ("File", "Wikipedia Article",),
-                          )
+    choice = st.selectbox(
+        "Choose what you want to use", 
+        (
+            "File", 
+            "Wikipedia Article",
+        ),
+    )
+    
     if choice == "File":
         file = st.file_uploader("Upload a file",
-                                type=["txt", "pdf"])
+                                type=["txt", "pdf", "docx"],
+        )
         if file:
-            with st.status("Loading file..."):
-                docs = split_file(file)
-            hash_value = file.name
+            docs = split_file(file)
     else:
         topic = st.text_input("Search Wikipedia")
         if topic:
+            # wiki_search(term):로 이동    
+            #retriever = WikipediaRetriever(top_k_results=5)
+            #with st.status("Searching Wikipedia..."):
+            #    docs = retriever.get_relevant_documents(term)
             docs = wiki_search(topic)
-            hash_value = topic
+
 
 if not docs:
     st.markdown(
@@ -313,18 +274,33 @@ if not docs:
     """
     )
 else:
-    response = run_quiz_chain(docs, topic if topic else file.name)
+    #st.write(docs)
     
+    #start = st.button("Generate Quiz")
+    
+    # if start:
+        
+        # questions_response = questions_chain.invoke(docs)
+        # st.write(questions_response.content)
+        # formatting_response = formatting_chain.invoke({
+        #     "context": questions_response.content
+        # })
+        # st.write(formatting_response.content)
+        
+    response = run_quiz_chain(docs, topic if topic else file.name)
+    #st.write(response)
     with st.form("questions_form"):
         for question in response["questions"]:
             st.write(question["question"])
             value = st.radio(
                 "Select an option.",
                 [answer["answer"] for answer in question["answers"]],
-                index=None,
+                index=None, # radio 버튼에서 처음에 아무것도 선택하지 않는다
             )
             if {"answer": value, "correct": True} in question["answers"]:
                 st.success("Correct!")
             elif value is not None:
                 st.error("Wrong!")
         button = st.form_submit_button()
+    
+    

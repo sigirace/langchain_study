@@ -10,14 +10,14 @@
 | #3 Welcome To Langchain    | 08.06(화) | 장준혁 |
 | #4 Model IO                | 08.07(수) | 장준혁 |
 | #5 Memory                  | 08.07(수) | 이채현 |
-| #6 RAG                     | 08.08(목) |        |
-| #7 DocumentGPT             | 08.08(목) |        |
-| #8 PrivateGPT              | 08.09(금) |        |
-| #9 QuizGPT                 | 08.09(금) |        |
-| #10 SiteGPT                | 08.12(월) |        |
-| #11 MeetingGPT             | 08.12(월) |        |
-| #12 InvestorGPT            | 08.13(화) |        |
-| #13 ChefGPT                | 08.13(화) |        |
-| #14 Assistants API         | 08.14(수) |        |
-| #15 AzureGPT & AWS bedrock | 08.14(수) |        |
-| #16 CrewAI                 | 08.16(금) |        |
+| #6 RAG                     | 08.08(목) | 황명선 |
+| #7 DocumentGPT             | 08.08(목) | 장준혁 |
+| #8 PrivateGPT              | 08.13(화) | 장준혁 |
+| #9 QuizGPT                 | 08.14(수) | 황명선 |
+| #10 SiteGPT                | 08.19(월) | 김대영 |
+| #11 MeetingGPT             | 08.20(화) |        |
+| #12 InvestorGPT            | 08.21(수) |        |
+| #13 ChefGPT                | 08.22(목) |        |
+| #14 Assistants API         | 08.23(금) |        |
+| #15 AzureGPT & AWS bedrock | 08.26(월) |        |
+| #16 CrewAI                 | 08.27(화) |        |

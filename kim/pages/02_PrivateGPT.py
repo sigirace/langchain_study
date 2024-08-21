@@ -1,8 +1,14 @@
+import nltk
+# nltk.download('punkt')
+# nltk.download('averaged_perceptron_tagger')
+
 import streamlit as st
 from langchain.prompts import ChatPromptTemplate
 from langchain.vectorstores.faiss import FAISS
-from langchain.embeddings.ollama import OllamaEmbeddings
-from langchain.chat_models.ollama import ChatOllama
+#from langchain.embeddings.ollama import OllamaEmbeddings
+from langchain.embeddings import OllamaEmbeddings
+#from langchain.chat_models.ollama import ChatOllama
+from langchain.chat_models import ChatOllama
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.storage.file_system import LocalFileStore
@@ -32,7 +38,7 @@ class ChatCallbackHandler(BaseCallbackHandler):
 
 
 llm = ChatOllama(
-    model="llama3.1:latest",
+    model="mistral:latest",
     temperature=0.1,
     streaming=True,
     callbacks=[
@@ -59,7 +65,7 @@ def embed_file(file):
     loader = UnstructuredFileLoader(file_path) 
     docs = loader.load_and_split(text_splitter=spliter)
     embeddings = OllamaEmbeddings(
-        model="llama3.1:latest",
+        model="mistral:latest",
     )
     cached_embeddings = CacheBackedEmbeddings.from_bytes_store(embeddings, cache_dir)
     vectorstore = FAISS.from_documents(documents=docs, embedding=cached_embeddings)
@@ -90,6 +96,21 @@ prompt = ChatPromptTemplate.from_template(
     """
 )
 
+
+# prompt = ChatPromptTemplate.from_messages(
+#     [
+#         (
+#             "system",
+#             """
+#             Answer the question using ONLY the following context. If you don't
+#             know the answer just say you don't know. DON'T make anthing up.
+            
+#             Context: {context}
+#             """,            
+#         ),
+#         ("human", "{question}"),
+#     ]
+# )
 
 
 st.title("DocumentGPT")
