@@ -1,0 +1,183 @@
+import streamlit as st
+import time
+
+import os
+os.environ["TIKTOKEN_CACHE_DIR"] = './etc'
+
+from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+
+from langchain.document_loaders import TextLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.schema import StrOutputParser
+
+from pydub import AudioSegment
+import math
+import subprocess
+import glob, openai
+
+
+## [Langchain Setting]=============================================================== ##
+
+llm = ChatOpenAI(
+    temperature=0.1,
+    streaming=True,
+)
+
+st.set_page_config(
+    page_title = "MeetingGPT",
+    page_icon = "🖥️",
+)
+
+
+## [Functions]======================================================================= ## 
+
+has_transcript = os.path.exists("./.cache/podcast.txt")
+
+@st.cache_data()
+def extract_audio_from_video(video_path):
+    ## ffmpeg -i files/podcast.mp4 -vn files/audio.mp3
+    ## ffmepg를 코드 내에서 사용하기 위해, subprocess.run을 사용한다.
+    ## 업로드 된 mp4 파일을 같은 이름의 mp3 파일로 extract함 (-vn 으로 영상 무시)
+    if has_transcript :
+        return
+    audio_path = video_path.replace("mp4", "mp3")
+    command = ["ffmpeg", "-y", "-i", video_path, "-vn", audio_path]
+    subprocess.run(command)
+
+@st.cache_data()
+def cut_audio_in_chunks(audio_path, chunk_size, chunks_folder):
+    if has_transcript :
+        return
+    track = AudioSegment.from_mp3(audio_path)
+    chunk_len = chunk_size * 60 * 1000 
+    chunks = math.ceil(len(track) / chunk_len)
+
+    for i in range(chunks):
+        start_time = i * chunk_len
+        end_time = (i + 1) * chunk_len
+
+    chunk = track[start_time:end_time]
+    chunk.export(f"./{chunks_folder}/chunk_{i}.mp3", format="mp3")
+
+@st.cache_data()
+def transcribe_chunks(chunk_folder, destination):
+    if has_transcript :
+        return
+    
+    files = glob.glob(f"{chunk_folder}/*.mp3")
+    files.sort()
+    final_transcript = ""
+
+    for file in files :
+        with open(file, "rb") as audio_file:
+            transcript = openai.Audio.transcribe(
+                "whisper-1", open(file, "rb"),
+             )   
+            final_transcript += transcript["text"]
+
+    with open(destination, "w") as file:
+        file.write(final_transcript)
+
+    return final_transcript
+
+## [Logic]======================================================================= ## 
+
+with st.sidebar:
+    video = st.file_uploader("Vidoe", type=["mp4", "avi", "mkv", "mov",])
+
+    
+st.markdown(
+    """
+    # MeetingGPT
+            
+    Ask questions about the audio file.
+            
+    Start by uploading audio file into the website on the sidebar.
+"""
+)
+
+if video:
+    chunks_folder = "./.cache/chunks"
+    with st.status("Loading video...") as status:
+        video_content = video.read()
+        
+        video_path = f"./.cache/{video.name}"
+        audio_path = video_path.replace("mp4", "mp3")
+        transcript_path = video_path.replace("mp4", "txt")
+
+        with open(video_path, "wb") as f:
+            f.write(video_content)
+        
+
+    status.update(label="Extracting audio...")
+    extract_audio_from_video(video_path)
+
+    status.update(label="Cutting audio segments...")
+    cut_audio_in_chunks(video_path.replace("mp4", "mp3"), 10, chunks_folder)
+
+    status.update(label="Transcribing audio...")
+    transcribe_chunks(chunks_folder, transcript_path)
+            
+                               
+    transcript_tab, summary_tab, qa_tab = st.tabs(["Transcript", "Summary", "Q&A"])
+
+    with transcript_tab:
+        with open(transcript_path, "r") as file:
+            st.write(file.read())
+
+    with summary_tab:
+        start = st.button("Generate summary")
+
+        if start:
+            loader = TextLoader(transcript_path)
+            splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
+                chunk_size=800,
+                chunk_overlap=100,
+            )
+            docs = loader.load_and_split(text_splitter=splitter)
+
+            first_summary_prompt = ChatPromptTemplate.from_template(
+                """
+                Write a concise summary of the following:
+                "{text}"
+                CONCISE SUMMARY:                
+            """
+            )
+            
+            ## 2회차 이상 chain을 위한 Context인 첫 번째 요약
+            first_summary_chain = first_summary_prompt | llm | StrOutputParser()
+
+            summary = first_summary_chain.invoke(
+                {"text": docs[0].page_content},
+            )
+
+            refine_prompt = ChatPromptTemplate.from_template(
+                """
+                Your job is to produce a final summary.
+                We have provided an existing summary up to a certain point: {existing_summary}
+                We have the opportunity to refine the existing summary (only if needed) with some more context below.
+                ------------
+                {context}
+                ------------
+                Given the new context, refine the original summary.
+                If the context isn't useful, RETURN the original summary.
+                """
+            )
+
+            ## 문서의 수만큼 자기 자신을 계속 invoke한다.
+            ## 자신의 이전 요약본이 다시 자신의 context가 되어 요약의 질 향상을 목적으로 함
+            refine_chain = refine_prompt | llm | StrOutputParser()
+
+            with st.status("Summarizing...") as status:
+                for i, doc in enumerate(docs[1:]):
+                    status.update(label=f"Processing document {i+1}/{len(docs)-1} ")
+                    summary = refine_chain.invoke(
+                        {
+                            "existing_summary": summary,
+                            "context": doc.page_content,
+                        }
+                    )
+                    st.write(summary)
+            st.write(summary)
