@@ -19,6 +19,7 @@ class ChatCallbackHandler(BaseCallbackHandler):
     message = ""
 
     def on_llm_start(self, *args, **kwargs):
+        print(*args)
         self.message_box = st.empty()
 
     def on_llm_end(self, *args, **kwargs):
