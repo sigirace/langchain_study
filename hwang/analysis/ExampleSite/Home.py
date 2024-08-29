@@ -52,6 +52,7 @@
 
 
 import streamlit as st
+import certifi
 
 st.set_page_config(
     page_title = "FullstackGPT Home",
@@ -74,3 +75,5 @@ Here are the apps I made:
 - [x] [InvestorGPT](/InvestorGPT)
 """
 )
+
+st.write(certifi.where())
