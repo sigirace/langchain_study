@@ -1,0 +1,117 @@
+CONNECTED(00000006)
+---
+Certificate chain
+ 0 s:CN=api.openai.com
+   i:C=KR, O=Somansa, CN=Somansa Root CA
+   a:PKEY: id-ecPublicKey, 256 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Nov 24 22:52:24 2024 GMT; NotAfter: Feb 22 23:52:20 2025 GMT
+ 1 s:C=KR, O=Somansa, CN=Somansa Root CA
+   i:C=KR, O=Somansa, CN=Somansa Root CA
+   a:PKEY: rsaEncryption, 2048 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Jan 15 04:42:53 2018 GMT; NotAfter: Jul 10 04:42:53 2049 GMT
+---
+Server certificate
+-----BEGIN CERTIFICATE-----
+MIIDtzCCAp+gAwIBAgIIG66iPkl90CAwDQYJKoZIhvcNAQELBQAwOTELMAkGA1UE
+BhMCS1IxEDAOBgNVBAoTB1NvbWFuc2ExGDAWBgNVBAMTD1NvbWFuc2EgUm9vdCBD
+QTAeFw0yNDExMjQyMjUyMjRaFw0yNTAyMjIyMzUyMjBaMBkxFzAVBgNVBAMTDmFw
+aS5vcGVuYWkuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3Z6Yurxg31XT
+xE8mxvN5XPr827BP/lAIHfr1/XRoj10rILrp5P7hFW0gU0CYq1dk9YuOIZGlZBRx
+GvcHGKFXDaOCAawwggGoMA4GA1UdDwEB/wQEAwIHgDATBgNVHSUEDDAKBggrBgEF
+BQcDATAMBgNVHRMBAf8EAjAAMB0GA1UdDgQWBBQeBJqe5u8C/XnhJqH38QULbCXK
+9zAfBgNVHSMEGDAWgBSygyxQc+mQos1s6MItYCXuoWRlRjArBgNVHREEJDAigg5h
+cGkub3BlbmFpLmNvbYIQKi5hcGkub3BlbmFpLmNvbTCCAQQGCisGAQQB1nkCBAIE
+gfUEgfIA8AB1AObSMWNAd4zBEEEG13G5zsHSQPaWhIb7uocyHf0eN45QAAABk2CX
+P7AAAAQDAEYwRAIgXFb+XMnLAi70ECa45pls+qf/rmCXnloNz6F91gWSuuACIGzA
+uyck8BjuKZrxmIg0aRV+UsZXlW8n5c6GOBYDNSy2AHcATnWjJ1yaEMM4W2zU3z9S
+6x3w4I4bjWnAsfpksWKaOd8AAAGTYJc/nwAABAMASDBGAiEA8xMTo/pcd9Rz4BbE
+OAT5sV6PSHi3TEzNfot9dWlXT5oCIQCwui1ngH+biURKerD9hrKVtq+ZHujZLx6v
+j+8cMMBPeDANBgkqhkiG9w0BAQsFAAOCAQEABXZcgHOOwWa2BGlBTQvGE0C3kiO2
+CjCt7/7CucuONc0kXJ486Xe7p3iWUWZlOWLkZta11q/snFVuP0XY6gisD3v4CPU5
+RBQGWRhxIa1QMqIsKZhbrrg+JKo13K+V+gs71v0RI7BYN+YQy/VL9DjPGqwEAa6i
+tZOQSiJdhMCC0hb14Ww+Er0sOrwLdR8XTdk20BkN9ZYjRTpBTbOsgjnenL7xEEgs
+CC9j0DnTEOZwx78lhzQ7uCrPGU4Vy+V/q9q8RVaJtnwN9FH+JHu4k8a9sRfnG8fz
+o4n/fwsjtys01WoSCD4fmumhgNpoqioLydbWYsiDM+klrhtBxUZVZodzaA==
+-----END CERTIFICATE-----
+subject=CN=api.openai.com
+issuer=C=KR, O=Somansa, CN=Somansa Root CA
+---
+No client certificate CA names sent
+Peer signing digest: SHA256
+Peer signature type: ECDSA
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 2168 bytes and written 405 bytes
+Verification: OK
+---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Protocol: TLSv1.3
+Server public key is 256 bit
+This TLS version forbids renegotiation.
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 0 (ok)
+---
+HTTP/1.1 400 Bad Request
+Server: cloudflare
+Date: Tue, 07 Jan 2025 23:19:56 GMT
+Content-Type: text/html
+Content-Length: 155
+Connection: close
+CF-RAY: -
+
+<html>
+<head><title>400 Bad Request</title></head>
+<body>
+<center><h1>400 Bad Request</h1></center>
+<hr><center>cloudflare</center>
+</body>
+</html>
+---
+Post-Handshake New Session Ticket arrived:
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_256_GCM_SHA384
+    Session-ID: 4AD846BDD6D0369BB5AAAB903A976051872064ACA07CC7F25E43A80321A8D8D1
+    Session-ID-ctx: 
+    Resumption PSK: 59F103F18B3A146889D3CDA80883A049F44D29B4FD897CBE84FBE6485F7C722287EEE0851D4D3A9A9B4A3884A84D06FB
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 7200 (seconds)
+    TLS session ticket:
+    0000 - 1d 1d f6 13 0a 0a 63 b3-ce cd 95 d7 85 80 4c 9d   ......c.......L.
+    0010 - 6e b7 59 48 8e 5a 49 36-85 31 40 71 eb 2c b9 2d   n.YH.ZI6.1@q.,.-
+
+    Start Time: 1736291988
+    Timeout   : 7200 (sec)
+    Verify return code: 0 (ok)
+    Extended master secret: no
+    Max Early Data: 0
+---
+read R BLOCK
+---
+Post-Handshake New Session Ticket arrived:
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_256_GCM_SHA384
+    Session-ID: 3FB70B7A0AEF918E19F57078888C783DE0A9CFA60722E7BE399261915D1C1378
+    Session-ID-ctx: 
+    Resumption PSK: 755459646E3CBF1B8546690CADA9B355C28D5CA3159C129F074B57100735AECD028ED7F3A7E4211EF825909A2BDD421C
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 7200 (seconds)
+    TLS session ticket:
+    0000 - dd ba 19 ca bc ad 79 4a-b1 91 2f 0d a4 52 ac 37   ......yJ../..R.7
+    0010 - 20 cf 87 80 7b f7 2f 40-b7 59 71 8b c9 0d 26 51    ...{./@.Yq...&Q
+
+    Start Time: 1736291988
+    Timeout   : 7200 (sec)
+    Verify return code: 0 (ok)
+    Extended master secret: no
+    Max Early Data: 0
+---
+read R BLOCK
